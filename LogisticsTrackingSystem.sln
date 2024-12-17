@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34622.214
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogisticsTrackingSystem.Api", "LogisticsTrackingSystem.Api\LogisticsTrackingSystem.Api.csproj", "{5971534D-89DF-46B4-8813-A0FDC1DC35F1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogisticsTrackingSystem.Presentation", "LogisticsTrackingSystem.Presentation\LogisticsTrackingSystem.Presentation.csproj", "{3ECB2B32-29F6-4567-9B7C-438B77A36662}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{5971534D-89DF-46B4-8813-A0FDC1DC35F1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5971534D-89DF-46B4-8813-A0FDC1DC35F1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5971534D-89DF-46B4-8813-A0FDC1DC35F1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5971534D-89DF-46B4-8813-A0FDC1DC35F1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3ECB2B32-29F6-4567-9B7C-438B77A36662}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3ECB2B32-29F6-4567-9B7C-438B77A36662}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3ECB2B32-29F6-4567-9B7C-438B77A36662}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3ECB2B32-29F6-4567-9B7C-438B77A36662}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DE7C3EC5-5AA9-4E03-B5D4-B7562350FD9C}
+	EndGlobalSection
+EndGlobal
