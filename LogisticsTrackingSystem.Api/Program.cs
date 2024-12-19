@@ -1,5 +1,11 @@
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using LogisticsTrackingSystem.Api.Data;
+using LogisticsTrackingSystem.Api.Endpoints;
+using LogisticsTrackingSystem.Api.Repositories;
+using LogisticsTrackingSystem.Api.Repositories.Interfaces;
+using LogisticsTrackingSystem.Api.Services;
+using LogisticsTrackingSystem.Api.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +20,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Register services and repositories
 builder.Services.AddScoped<IShipmentRepository, ShipmentRepository>();
 builder.Services.AddScoped<IShipmentService, ShipmentService>();
-builder.Services.AddScoped<ShipmentEndpoints>();
 
 // Add validators
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
@@ -30,15 +35,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Seed the database
-using (var scope = app.Services.CreateScope())
-{
-    var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    context.Database.EnsureCreated(); // This will create and seed the database
-}
-
-// Map endpoints
-var shipmentEndpoints = app.Services.GetRequiredService<ShipmentEndpoints>();
-shipmentEndpoints.MapEndpoints(app);
+ShipmentEndpoints.MapEndpoints(app);
 
 app.Run();

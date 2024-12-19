@@ -1,79 +1,156 @@
 using FluentValidation;
 using LogisticsTrackingSystem.Api.Models;
 using LogisticsTrackingSystem.Api.Services.Interfaces;
+using LogisticsTrackingSystem.Api.Exceptions;
 
 namespace LogisticsTrackingSystem.Api.Endpoints;
 
 public class ShipmentEndpoints
 {
-    private readonly IShipmentService _shipmentService;
-    private readonly ILogger<ShipmentEndpoints> _logger;
-    private readonly IValidator<Shipment> _validator;
 
-    public ShipmentEndpoints(
-        IShipmentService shipmentService, 
-        ILogger<ShipmentEndpoints> logger,
-        IValidator<Shipment> validator)
+    public ShipmentEndpoints()
     {
-        _shipmentService = shipmentService;
-        _logger = logger;
-        _validator = validator;
     }
 
-    public void MapEndpoints(IEndpointRouteBuilder app)
+    public static void MapEndpoints(WebApplication app)
     {
-        var shipments = app.MapGroup("/api/shipments");
+        var endpointGroup = app.MapGroup("/api/shipments");
 
-        shipments.MapGet("/", GetAllShipments);
-        
-        shipments.MapGet("/{id}", GetShipmentById);
-        
-        shipments.MapPost("/", CreateShipment);
-        
-        shipments.MapPut("/{id}", UpdateShipment);
-        
-        shipments.MapDelete("/{id}", DeleteShipment);
+        //GetAllShipments
+        endpointGroup.MapGet("/", async (IShipmentService service) => {
+            try
+            {
+                var shipments = await service.GetAllAsync();
+                return Results.Ok(shipments);
+            }
+            catch (RepositoryException ex)
+            {
+                return Results.Problem(
+                    title: "Database Error",
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(statusCode: StatusCodes.Status500InternalServerError);
+            }
+        });
+
+        //GetShipmentById
+        endpointGroup.MapGet("/{id}", async (Guid id, IShipmentService service) => {
+            try
+            {
+                var shipment = await service.GetByIdAsync(id);
+                return Results.Ok(shipment);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return Results.NotFound(new { message = ex.Message });
+            }
+            catch (RepositoryException ex)
+            {
+                return Results.Problem(
+                    title: "Database Error",
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(statusCode: StatusCodes.Status500InternalServerError);
+            }
+        });
+
+        //CreateShipment
+        endpointGroup.MapPost("/", async (Shipment shipment, IShipmentService service, IValidator < Shipment > validator) => {
+            try
+            {
+                var validationResult = await validator.ValidateAsync(shipment);
+                if (!validationResult.IsValid)
+                {
+                    return Results.ValidationProblem(
+                        validationResult.ToDictionary()
+                    );
+                }
+
+                var result = await service.CreateAsync(shipment);
+                return Results.Created($"/api/shipments/{result.Id}", result);
+            }
+            catch (RepositoryException ex)
+            {
+                return Results.Problem(
+                    title: "Database Error",
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(statusCode: StatusCodes.Status500InternalServerError);
+            }
+        });
+
+        //UpdateShipment
+        endpointGroup.MapPut("/{id}", async (Guid id, Shipment shipment, IShipmentService service, IValidator<Shipment> validator) => {
+            try
+            {
+                if (id != shipment.Id)
+                {
+                    return Results.BadRequest(new { message = "ID in route must match ID in shipment" });
+                }
+
+                var validationResult = await validator.ValidateAsync(shipment);
+                if (!validationResult.IsValid)
+                {
+                    return Results.ValidationProblem(validationResult.ToDictionary());
+                }
+
+                var updatedShipment = await service.UpdateAsync(id, shipment);
+                return Results.Ok(updatedShipment);
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return Results.NotFound(new { message = ex.Message });
+            }
+            catch (RepositoryException ex)
+            {
+                return Results.Problem(
+                    title: "Database Error",
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(statusCode: StatusCodes.Status500InternalServerError);
+            }
+        });
+
+        //DeleteShipment
+        endpointGroup.MapDelete("/{id}", async (Guid id, IShipmentService service) => {
+            try
+            {
+                await service.DeleteAsync(id);
+                return Results.NoContent();
+            }
+            catch (EntityNotFoundException ex)
+            {
+                return Results.NotFound(new { message = ex.Message });
+            }
+            catch (RepositoryException ex)
+            {
+                return Results.Problem(
+                    title: "Database Error",
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+            catch (Exception ex)
+            {
+                return Results.Problem(statusCode: StatusCodes.Status500InternalServerError);
+            }
+        });
+
     }
-
-    private async Task<IResult> GetAllShipments()
-    {
-        return Results.Ok(await _shipmentService.GetAllAsync());
-    }
-
-    private async Task<IResult> GetShipmentById(Guid id)
-    {
-        var shipment = await _shipmentService.GetByIdAsync(id);
-        return shipment is null ? Results.NotFound() : Results.Ok(shipment);
-    }
-
-    private async Task<IResult> CreateShipment(Shipment shipment)
-    {
-        var validationResult = await _validator.ValidateAsync(shipment);
-        if (!validationResult.IsValid)
-        {
-            return Results.BadRequest(validationResult.Errors);
-        }
-
-        var result = await _shipmentService.CreateAsync(shipment);
-        return Results.Created($"/api/shipments/{result.Id}", result);
-    }
-
-    private async Task<IResult> UpdateShipment(Guid id, Shipment shipment)
-    {
-        var validationResult = await _validator.ValidateAsync(shipment);
-        if (!validationResult.IsValid)
-        {
-            return Results.BadRequest(validationResult.Errors);
-        }
-
-        shipment.Id = id;
-        var result = await _shipmentService.UpdateAsync(id, shipment);
-        return result ? Results.Ok(shipment) : Results.NotFound();
-    }
-
-    private async Task<IResult> DeleteShipment(Guid id)
-    {
-        var result = await _shipmentService.DeleteAsync(id);
-        return result ? Results.NoContent() : Results.NotFound();
-    }
-} 
+}

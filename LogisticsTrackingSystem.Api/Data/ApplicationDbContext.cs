@@ -5,21 +5,24 @@ namespace LogisticsTrackingSystem.Api.Data;
 
 public class ApplicationDbContext : DbContext
 {
-
-    //todo promeni bazu na nesto kao H2
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options): base(options)
     {
+        // Ensure database is created
+        Database.EnsureCreated();
     }
 
-    public DbSet<Shipment> Shipments { get; set; } = null!;
+    // Remove null! as it's not needed and could mask issues
+    public DbSet<Shipment> Shipments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Seed some initial data
+        base.OnModelCreating(modelBuilder);
+
+        // Seed data with fixed GUIDs for easier testing
         modelBuilder.Entity<Shipment>().HasData(
             new Shipment
             {
-                Id = Guid.NewGuid(),
+                Id = new Guid("8E6B626A-B97B-472B-9E8F-44B5D2EC9CB4"),
                 Name = "Test Shipment 1",
                 Status = Status.InTransit,
                 CreatedAt = DateTime.UtcNow,
@@ -27,7 +30,7 @@ public class ApplicationDbContext : DbContext
             },
             new Shipment
             {
-                Id = Guid.NewGuid(),
+                Id = new Guid("B98B8AC2-721F-4F06-9DC9-1DEAD7B76A27"),
                 Name = "Test Shipment 2",
                 Status = Status.InWarehouse,
                 CreatedAt = DateTime.UtcNow,
