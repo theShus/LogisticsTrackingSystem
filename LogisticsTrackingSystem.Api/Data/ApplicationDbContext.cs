@@ -7,11 +7,9 @@ public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options): base(options)
     {
-        // Ensure database is created
         Database.EnsureCreated();
     }
 
-    // Remove null! as it's not needed and could mask issues
     public DbSet<Shipment> Shipments { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
