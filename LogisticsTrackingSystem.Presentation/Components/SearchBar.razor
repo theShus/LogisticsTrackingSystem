@@ -1,0 +1,68 @@
+<div class="search-bar mb-3 row">
+	<div class="col-md-6">
+		<input type="text"
+		       class="form-control"
+		       placeholder="Search by name..."
+		       @bind-value="SearchTerm"
+		       @bind-value:event="oninput"/>
+	</div>
+	<div class="col-md-4">
+		<select class="form-select" @bind="SelectedStatus">
+			<option value="">All Statuses</option>
+			@foreach (var status in Enum.GetValues(typeof(Status)))
+			{
+				<option value="@status">@status</option>
+			}
+		</select>
+	</div>
+</div>
+
+@code {
+	private string _searchTerm = string.Empty;
+	private Status? _selectedStatus;
+	private Timer? _delayTimer;
+
+	[Parameter] public EventCallback<(string searchTerm, Status? status)> OnSearch { get; set; }
+
+	public string SearchTerm
+	{
+		get => _searchTerm;
+		set
+		{
+			if (_searchTerm == value) return;
+			_searchTerm = value;
+			DelayedSearch();
+		}
+	}
+
+	public Status? SelectedStatus
+	{
+		get => _selectedStatus;
+		set
+		{
+			if (_selectedStatus == value) return;
+			_selectedStatus = value;
+			TriggerSearch();
+		}
+	}
+
+	//this is so we dont search at every single button press, but after a word
+	private void DelayedSearch()
+	{
+		_delayTimer?.Dispose();
+		_delayTimer = new Timer(_ => 
+		{
+			InvokeAsync(async () => await TriggerSearch());
+		}, null, 300, Timeout.Infinite);
+	}
+	public void Dispose()
+	{
+		_delayTimer?.Dispose();
+	}
+
+	private async Task TriggerSearch()
+	{
+		await OnSearch.InvokeAsync((SearchTerm, SelectedStatus));
+	}
+
+}

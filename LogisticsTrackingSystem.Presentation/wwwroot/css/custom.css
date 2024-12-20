@@ -1,0 +1,52 @@
+﻿:root {
+    --primary-color: #288a30;
+    --secondary-color: #a4c3b2;
+    --background-color: #f6fff8;
+    --text-color: #2f3e46;
+}
+
+body {
+    color: var(--text-color);
+}
+
+    body::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url('../assets/backgruond.jpg');
+        background-size: cover;
+        background-position: center; 
+        opacity: 0.2;
+        z-index: -1; 
+    }
+
+.btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+    .btn-primary:hover {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+    }
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.table {
+    background-color: white;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.search-bar {
+    background-color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}

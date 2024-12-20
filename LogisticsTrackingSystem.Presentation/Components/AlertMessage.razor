@@ -1,0 +1,22 @@
+@* https://getbootstrap.com/docs/4.0/components/alerts/ *@
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <div class="alert alert-@Type alert-dismissible fade show" role="alert">
+        @Message
+        <button type="button" class="btn-close" @onclick="Dismiss"></button>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public string Message { get; set; } = string.Empty;
+
+    [Parameter]
+    public string Type { get; set; } = "info";
+
+    private void Dismiss()
+    {
+        Message = string.Empty;
+    }
+} 

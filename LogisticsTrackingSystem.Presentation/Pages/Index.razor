@@ -1,0 +1,161 @@
+@page "/"
+@inject IShipmentService ShipmentService
+@inject NavigationManager NavigationManager
+
+<PageTitle>Shipments - Logistics Tracking System</PageTitle>
+
+<div class="container mt-4">
+	<div class="d-flex justify-content-between align-items-center mb-4">
+		<div>
+			<h1>Shipments</h1>
+			<p class="text-muted">Manage your shipments here</p>
+		</div>
+
+		<button class="btn btn-primary" @onclick="AddNewShipment">
+			<i class="bi bi-plus"></i> Add New Shipment
+		</button>
+	</div>
+
+	<SearchBar OnSearch="HandleSearch"/>
+
+	@if (_loading)
+	{
+		// https://getbootstrap.com/docs/5.0/components/spinners/#border-spinner
+		<div id="LoadingSpinner">
+			<div class="spinner-border text-primary " role="status">
+				<span class="visually-hidden">Loading...</span>
+			</div>
+			<p class="mt-2">Loading shipments...</p>
+		</div>
+	}
+	else if (_error)
+	{
+		<div id="ErrorMessageBox">
+			<AlertMessage Message="@_errorMessage" Type="danger"/>
+			<button class="btn btn-outline-primary mt-3" @onclick="LoadShipments">
+				<i class="bi bi-arrow-clockwise"></i> Retry
+			</button>
+		</div>
+	}
+	else if (!_shipments.Any())
+	{
+		<div id="NoShipmentsMessage">
+			<AlertMessage Message="No shipments found" Type="info"/>
+		</div>
+	}
+	else
+	{
+		<div id="ShipmentsTable">
+			<ShipmentTable
+				Shipments="_shipments"
+				OnView="OpenShipmentDetails"
+				OnEdit="OpenEditShipment"
+				OnDelete="DeleteShipment"/>
+		</div>
+	}
+
+	@if (_showDeleteConfirmation)
+	{
+		<div>
+			<ConfirmDelete
+				CancelDelete="CancelDelete"
+				ConfirmDeleteShipment="ConfirmDeleteShipment">
+			</ConfirmDelete>
+		</div>
+	}
+</div>
+
+@code {
+	private IEnumerable<Shipment> _shipments = Enumerable.Empty<Shipment>();
+	private bool _loading = true;
+	private bool _error;
+	private string _errorMessage = string.Empty;
+	private bool _showDeleteConfirmation;
+	private Shipment? _shipmentToDelete;
+
+	protected override async Task OnInitializedAsync()
+	{
+		await LoadShipments();
+	}
+
+	private async Task LoadShipments()
+	{
+		try
+		{
+			_loading = true;
+			_error = false;
+			_errorMessage = string.Empty;
+			_shipments = await ShipmentService.GetAllAsync();
+		}
+		catch (Exception ex) //todo promeni da prikazuje msg iz errora od servera
+		{
+			_error = true;
+			_errorMessage = "Failed to load shipments: " + ex.Message;
+		}
+		finally
+		{
+			_loading = false;
+		}
+	}
+
+	private void DeleteShipment(Shipment shipment)
+	{
+		_shipmentToDelete = shipment;
+		_showDeleteConfirmation = true;
+	}
+
+	private void CancelDelete()
+	{
+		_shipmentToDelete = null;
+		_showDeleteConfirmation = false;
+	}
+
+	private async Task ConfirmDeleteShipment()
+	{
+		if (_shipmentToDelete == null) return;
+
+		try
+		{
+			await ShipmentService.DeleteAsync(_shipmentToDelete.Id);
+			await LoadShipments();
+			_showDeleteConfirmation = false;
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = "Failed to delete shipment: " + ex.Message;
+		}
+	}
+
+	private void AddNewShipment()
+	{
+		NavigationManager.NavigateTo("/shipment/new");
+	}
+
+	private void OpenShipmentDetails(Shipment shipment)
+	{
+		NavigationManager.NavigateTo($"/shipment/{shipment.Id}");
+	}
+
+	private void OpenEditShipment(Shipment shipment)
+	{
+		NavigationManager.NavigateTo($"/shipment/edit/{shipment.Id}");
+	}
+
+	private async Task HandleSearch((string searchTerm, Status? status) search)
+	{
+		try
+		{
+			_loading = true;
+			_shipments = await ShipmentService.SearchAsync(search.searchTerm, search.status);
+		}
+		catch (Exception ex)
+		{
+			_errorMessage = "Search failed: " + ex.Message;
+		}
+		finally
+		{
+			_loading = false;
+		}
+	}
+
+}

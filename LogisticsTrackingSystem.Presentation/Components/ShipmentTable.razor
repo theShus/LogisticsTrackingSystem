@@ -1,0 +1,53 @@
+@* https://getbootstrap.com/docs/4.0/content/tables/#hoverable-rows *@
+
+<table class="table table-hover">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Created At</th>
+            <th>Delivery Date</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var shipment in Shipments)
+        {
+            <tr>
+                <td>@shipment.Id</td>
+                <td>@shipment.Name</td>
+                <td><StatusBadge Status="@shipment.Status" /></td>
+                <td>@shipment.CreatedAt.ToLocalTime().ToString("dd-MM-yyyy")</td>
+                <td>@(shipment.DeliveryDate?.ToLocalTime().ToString("dd-MM-yyyy"))</td>
+                <td>
+                    <div class="btn-group">
+                        <button class="btn btn-sm btn-primary" @onclick="() => OnView.InvokeAsync(shipment)">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                        <button class="btn btn-sm btn-warning" @onclick="() => OnEdit.InvokeAsync(shipment)">
+                            <i class="bi bi-pencil"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger" @onclick="() => OnDelete.InvokeAsync(shipment)">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@code {
+    [Parameter]
+    public IEnumerable<Shipment> Shipments { get; set; } = Enumerable.Empty<Shipment>();
+
+    [Parameter]
+    public EventCallback<Shipment> OnView { get; set; }
+
+    [Parameter]
+    public EventCallback<Shipment> OnEdit { get; set; }
+
+    [Parameter]
+    public EventCallback<Shipment> OnDelete { get; set; }
+} 

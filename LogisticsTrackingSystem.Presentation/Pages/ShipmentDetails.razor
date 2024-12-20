@@ -1,0 +1,89 @@
+@* https://getbootstrap.com/docs/4.0/components/card/ *@
+
+@page "/shipment/{Id:guid}"
+@inject IShipmentService ShipmentService
+@inject NavigationManager NavigationManager
+
+<div class="container mt-4">
+    @if (_loading)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    }
+    else if (_shipment != null)
+    {
+        <div class="card">
+	        <div class="card-header d-flex justify-content-between">
+		        <h3>Shipment Details</h3>
+		        <button class="btn btn-primary" @onclick="GoBack">
+			        <i class="bi bi-arrow-left"></i> Back
+		        </button>
+	        </div>
+
+            <div class="card-body">
+	            <div class="row mb-3">
+		            <div class="col-md-3 fw-bold">ID:</div>
+		            <div class="col-md-9">@_shipment.Id</div>
+	            </div>
+
+	            <div class="row mb-3">
+		            <div class="col-md-3 fw-bold">Name:</div>
+		            <div class="col-md-9">@_shipment.Name</div>
+	            </div>
+
+	            <div class="row mb-3">
+		            <div class="col-md-3 fw-bold">Status:</div>
+		            <div class="col-md-9">
+			            <StatusBadge Status="@_shipment.Status" />
+		            </div>
+	            </div>
+
+	            <div class="row mb-3">
+		            <div class="col-md-3 fw-bold">Created At:</div>
+		            <div class="col-md-9">@_shipment.CreatedAt.ToLocalTime().ToString("g")</div>
+	            </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-3 fw-bold">Delivery Date:</div>
+                    <div class="col-md-9">@(_shipment.DeliveryDate?.ToLocalTime().ToString("g") ?? "-")</div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <AlertMessage Message="Shipment not found" Type="danger" />
+    }
+</div>
+
+@code {
+    [Parameter]
+    public Guid Id { get; set; }
+
+    private Shipment? _shipment;
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _shipment = await ShipmentService.GetByIdAsync(Id);
+        }
+        catch
+        {
+            _shipment = null;
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+} 

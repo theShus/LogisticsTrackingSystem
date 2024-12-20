@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34622.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogisticsTrackingSystem.Api", "LogisticsTrackingSystem.Api\LogisticsTrackingSystem.Api.csproj", "{5971534D-89DF-46B4-8813-A0FDC1DC35F1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogisticsTrackingSystem.Api", "LogisticsTrackingSystem.Api\LogisticsTrackingSystem.Api.csproj", "{5971534D-89DF-46B4-8813-A0FDC1DC35F1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LogisticsTrackingSystem.Presentation", "LogisticsTrackingSystem.Presentation\LogisticsTrackingSystem.Presentation.csproj", "{3ECB2B32-29F6-4567-9B7C-438B77A36662}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LogisticsTrackingSystem.Presentation", "LogisticsTrackingSystem.Presentation\LogisticsTrackingSystem.Presentation.csproj", "{3ECB2B32-29F6-4567-9B7C-438B77A36662}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

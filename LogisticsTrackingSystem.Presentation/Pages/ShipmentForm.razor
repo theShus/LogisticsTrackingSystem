@@ -1,0 +1,125 @@
+@* https://learn.microsoft.com/en-us/aspnet/core/blazor/forms/?view=aspnetcore-9.0 *@
+
+@page "/shipment/new"
+@page "/shipment/edit/{Id:guid}"
+@inject IShipmentService ShipmentService
+@inject NavigationManager NavigationManager
+
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h3>@(_isNew ? "Add New Shipment" : "Edit Shipment")</h3>
+        </div>
+        <div class="card-body">
+            @if (_loading)
+            {
+                <div>
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <EditForm Model="@_shipment" OnValidSubmit="HandleSubmit">
+                    <DataAnnotationsValidator /> @* So validation can work *@
+
+                    <div class="mb-3">
+                        <label class="form-label">Name</label>
+                        <InputText @bind-Value="_shipment.Name" class="form-control" />
+                        <ValidationMessage For="@(() => _shipment.Name)" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Status</label>
+                        <InputSelect @bind-Value="_shipment.Status" class="form-select">
+                            @foreach (var status in Enum.GetValues(typeof(Status)))
+                            {
+                                <option value="@status">@status</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Delivery Date</label>
+                        <InputDate @bind-Value="_shipment.DeliveryDate" class="form-control" />
+                        <ValidationMessage For="@(() => _shipment.DeliveryDate)" />
+                    </div>
+
+                    @if (!string.IsNullOrEmpty(_errorMessage))
+                    {
+                        <AlertMessage Message="@_errorMessage" Type="danger" />
+                    }
+
+                    <div class="d-flex justify-content-between">
+                        <button type="button" class="btn btn-secondary" @onclick="GoBack">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            @(_isNew ? "Create" : "Update")
+                        </button>
+                    </div>
+                </EditForm>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public Guid? Id { get; set; }
+
+    private Shipment _shipment = new()
+    {
+        CreatedAt = DateTime.UtcNow,
+        DeliveryDate = DateTime.UtcNow.AddDays(1)
+    };
+    private bool _loading;
+    private bool _isNew => Id == null;
+    private string _errorMessage = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!_isNew)
+        {
+            try
+            {
+                _loading = true;
+                _shipment = await ShipmentService.GetByIdAsync(Id!.Value);
+            }
+            catch
+            {
+                _errorMessage = "Failed to load shipment";
+            }
+            finally
+            {
+                _loading = false;
+            }
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        try
+        {
+            if (_isNew)
+            {
+                await ShipmentService.CreateAsync(_shipment);
+            }
+            else
+            {
+                await ShipmentService.UpdateAsync(Id!.Value, _shipment);
+            }
+            NavigationManager.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            _errorMessage = $"Failed to {(_isNew ? "create" : "update")} shipment: {ex.Message}";
+        }
+    }
+
+    private void GoBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+} 

@@ -1,0 +1,21 @@
+@* https://getbootstrap.com/docs/4.0/components/badge/#contextual-variations *@
+
+<span class="badge @GetStatusClass()">
+    @Status
+</span>
+
+@code {
+    [Parameter]
+    public Status Status { get; set; }
+
+    private string GetStatusClass()
+    {
+	    return Status switch
+	    {
+		    Status.InTransit => "bg-primary",
+		    Status.Delivered => "bg-success",
+		    Status.InWarehouse => "bg-warning",
+		    _ => "bg-secondary"
+	    };
+    }
+} 

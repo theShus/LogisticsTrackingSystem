@@ -1,0 +1,29 @@
+﻿@* https://getbootstrap.com/docs/4.0/components/modal/#accessibility *@
+
+<div class="modal fade show delete-modal">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title">Confirm Delete</h5>
+				<button type="button" class="btn-close" @onclick="CancelDelete"></button>
+			</div>
+			<div class="modal-body">
+				Are you sure you want to delete this shipment?
+			</div>
+			<div class="modal-footer">
+				<button class="btn btn-secondary" @onclick="CancelDelete">Cancel</button>
+				<button class="btn btn-danger" @onclick="ConfirmDeleteShipment">Delete</button>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="modal-backdrop fade show"></div>
+
+@code {
+
+	[Parameter]
+	public EventCallback CancelDelete { get; set; }
+
+	[Parameter]
+	public EventCallback ConfirmDeleteShipment { get; set; }
+}

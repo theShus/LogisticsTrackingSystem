@@ -15,7 +15,7 @@ public class ApplicationDbContext : DbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-
+        
         // Seed data with fixed GUIDs for easier testing
         modelBuilder.Entity<Shipment>().HasData(
             new Shipment
