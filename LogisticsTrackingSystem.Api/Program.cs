@@ -6,6 +6,9 @@ using LogisticsTrackingSystem.Api.Repositories;
 using LogisticsTrackingSystem.Api.Repositories.Interfaces;
 using LogisticsTrackingSystem.Api.Services;
 using LogisticsTrackingSystem.Api.Services.Interfaces;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,6 +38,30 @@ builder.Services.AddScoped<IShipmentService, ShipmentService>();
 // Add validators
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
+// Add JWT configuration
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]!)
+            )
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+// Register services
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
+
 var app = builder.Build();
 
 // Enable CORS - add this before other middleware (before UseAuthorization)
@@ -50,5 +77,9 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 ShipmentEndpoints.MapEndpoints(app);
+AuthEndpoints.MapEndpoints(app);
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Run();

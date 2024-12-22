@@ -1,0 +1,78 @@
+@inject IAuthService AuthService
+
+<div class="modal fade show login-modal" style="display: @(_visible ? "block" : "none")">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Login</h5>
+                <button type="button" class="btn-close" @onclick="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">Username</label>
+                    <input type="text" class="form-control" @bind="username" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-control" @bind="password" />
+                </div>
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="alert alert-danger">@errorMessage</div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" @onclick="Close">Cancel</button>
+                <button class="btn btn-primary" @onclick="HandleLogin">Login</button>
+            </div>
+        </div>
+    </div>
+</div>
+@if (_visible)
+{
+    <div class="modal-backdrop fade show"></div>
+}
+
+@code {
+    private bool _visible;
+    private string username = "";
+    private string password = "";
+    private string errorMessage = "";
+
+    [Parameter]
+    public EventCallback<bool> OnLoginResult { get; set; }
+
+    public void Show()
+    {
+        _visible = true;
+        StateHasChanged();
+    }
+
+    private void Close()
+    {
+        _visible = false;
+        username = "";
+        password = "";
+        errorMessage = "";
+    }
+
+    private async Task HandleLogin()
+    {
+        if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
+        {
+            errorMessage = "Please enter both username and password";
+            return;
+        }
+
+        var result = await AuthService.LoginAsync(username, password);
+        if (result)
+        {
+            await OnLoginResult.InvokeAsync(true);
+            Close();
+        }
+        else
+        {
+            errorMessage = "Invalid username or password";
+        }
+    }
+}

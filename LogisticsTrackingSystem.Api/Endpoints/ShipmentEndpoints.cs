@@ -2,6 +2,9 @@ using FluentValidation;
 using LogisticsTrackingSystem.Api.Models;
 using LogisticsTrackingSystem.Api.Services.Interfaces;
 using LogisticsTrackingSystem.Api.Exceptions;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace LogisticsTrackingSystem.Api.Endpoints;
 
@@ -63,10 +66,11 @@ public class ShipmentEndpoints
         });
 
         //CreateShipment
-        endpointGroup.MapPost("/", async (Shipment shipment, IShipmentService service, IValidator < Shipment > validator) => {
+        endpointGroup.MapPost("/", async (Shipment shipment, IShipmentService service, IValidator < Shipment > validator, ClaimsPrincipal user) => {
             try
             {
-                var validationResult = await validator.ValidateAsync(shipment);
+
+				var validationResult = await validator.ValidateAsync(shipment);
                 if (!validationResult.IsValid)
                 {
                     return Results.ValidationProblem(
@@ -89,13 +93,13 @@ public class ShipmentEndpoints
             {
                 return Results.Problem(statusCode: StatusCodes.Status500InternalServerError);
             }
-        });
+        }).RequireAuthorization(policy => policy.RequireRole("Admin", "User"));
 
         //UpdateShipment
         endpointGroup.MapPut("/{id}", async (Guid id, Shipment shipment, IShipmentService service, IValidator<Shipment> validator) => {
             try
             {
-                if (id != shipment.Id)
+				if (id != shipment.Id)
                 {
                     return Results.BadRequest(new { message = "ID in route must match ID in shipment" });
                 }
@@ -125,10 +129,12 @@ public class ShipmentEndpoints
             {
                 return Results.Problem(statusCode: StatusCodes.Status500InternalServerError);
             }
-        });
+        }).RequireAuthorization(policy => policy.RequireRole("Admin", "User"));
 
-        //DeleteShipment
-        endpointGroup.MapDelete("/{id}", async (Guid id, IShipmentService service) => {
+		//DeleteShipment
+		endpointGroup.MapDelete("/{id}", async (Guid id, IShipmentService service) =>
+        {
+
             try
             {
                 await service.DeleteAsync(id);
@@ -138,19 +144,7 @@ public class ShipmentEndpoints
             {
                 return Results.NotFound(new { message = ex.Message });
             }
-            catch (RepositoryException ex)
-            {
-                return Results.Problem(
-                    title: "Database Error",
-                    detail: ex.Message,
-                    statusCode: StatusCodes.Status500InternalServerError
-                );
-            }
-            catch (Exception ex)
-            {
-                return Results.Problem(statusCode: StatusCodes.Status500InternalServerError);
-            }
-        });
+        }).RequireAuthorization(policy => policy.RequireRole("Admin"));
 
-    }
+	}
 }

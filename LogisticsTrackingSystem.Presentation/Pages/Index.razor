@@ -1,5 +1,6 @@
 @page "/"
 @inject IShipmentService ShipmentService
+@inject IAuthService AuthService
 @inject NavigationManager NavigationManager
 
 <PageTitle>Shipments - Logistics Tracking System</PageTitle>
@@ -10,10 +11,23 @@
 			<h1>Shipments</h1>
 			<p class="text-muted">Manage your shipments here</p>
 		</div>
+		
+		<div class="d-flex gap-2">
+			<button class="btn btn-primary" @onclick="AddNewShipment">
+				<i class="bi bi-plus"></i> Add New Shipment
+			</button>
+			<button class="btn btn-primary" @onclick="ShowLoginDialog">
+				@if (_isAuthenticated)
+				{
+					<span>Logout</span>
+				}
+				else
+				{
+					<span>Login</span>
+				}
+			</button>
 
-		<button class="btn btn-primary" @onclick="AddNewShipment">
-			<i class="bi bi-plus"></i> Add New Shipment
-		</button>
+		</div>
 	</div>
 
 	<SearchBar OnSearch="HandleSearch"/>
@@ -52,6 +66,12 @@
 				OnEdit="OpenEditShipment"
 				OnDelete="DeleteShipment"/>
 		</div>
+		@if (_loggingError)
+		{
+			<div id="NoShipmentsMessage">
+				<AlertMessage Message="@_errorMessage" Type="danger" TriggerActionOnClose="CloseLoggingError"/>
+			</div>
+		}
 	}
 
 	@if (_showDeleteConfirmation)
@@ -63,19 +83,58 @@
 			</ConfirmDelete>
 		</div>
 	}
+
+	<LoginDialog @ref="_loginDialog" OnLoginResult="HandleLoginResult" />
+
 </div>
 
 @code {
 	private IEnumerable<Shipment> _shipments = Enumerable.Empty<Shipment>();
 	private bool _loading = true;
 	private bool _error;
+	private bool _loggingError = false;
 	private string _errorMessage = string.Empty;
 	private bool _showDeleteConfirmation;
 	private Shipment? _shipmentToDelete;
+	private LoginDialog? _loginDialog;
+	private bool _isAuthenticated;
 
 	protected override async Task OnInitializedAsync()
 	{
 		await LoadShipments();
+		IsAuthenticated();
+	}
+
+	private async void IsAuthenticated()
+	{
+		if (await AuthService.IsAuthenticatedAsync()) _isAuthenticated = true;
+		StateHasChanged();
+	}
+
+	private void CloseLoggingError()
+	{
+		_loggingError = false;
+	}
+
+	private async void ShowLoginDialog()
+	{
+		if (_isAuthenticated)
+		{
+			await AuthService.Logout();
+			_isAuthenticated = false;
+		}
+		else _loginDialog?.Show();
+		StateHasChanged();
+	}
+	private void HandleLoginResult(bool success)
+	{
+		if (success)
+		{
+			_isAuthenticated = true;
+			_error = false;
+			_errorMessage = string.Empty;
+			StateHasChanged();
+		}
 	}
 
 	private async Task LoadShipments()
@@ -87,7 +146,7 @@
 			_errorMessage = string.Empty;
 			_shipments = await ShipmentService.GetAllAsync();
 		}
-		catch (Exception ex) //todo promeni da prikazuje msg iz errora od servera
+		catch (Exception ex)
 		{
 			_error = true;
 			_errorMessage = "Failed to load shipments: " + ex.Message;
@@ -100,6 +159,14 @@
 
 	private void DeleteShipment(Shipment shipment)
 	{
+		if (!_isAuthenticated)
+		{
+			_showDeleteConfirmation = false;
+			_loggingError = true;
+			_errorMessage = "Please log in to delete shipments.";
+			return;
+		}
+
 		_shipmentToDelete = shipment;
 		_showDeleteConfirmation = true;
 	}
@@ -120,14 +187,27 @@
 			await LoadShipments();
 			_showDeleteConfirmation = false;
 		}
+		catch (UnauthorizedAccessException ex)
+		{
+			_error = true;
+			_errorMessage = ex.Message;
+		}
 		catch (Exception ex)
 		{
+			_error = true;
 			_errorMessage = "Failed to delete shipment: " + ex.Message;
 		}
 	}
 
 	private void AddNewShipment()
 	{
+		if (!_isAuthenticated)
+		{
+			_loggingError = true;
+			_errorMessage = "Please log in to create shipments.";
+			return;
+		}
+
 		NavigationManager.NavigateTo("/shipment/new");
 	}
 
@@ -138,6 +218,13 @@
 
 	private void OpenEditShipment(Shipment shipment)
 	{
+		if (!_isAuthenticated)
+		{
+			_loggingError = true;
+			_errorMessage = "Please log in to edit shipments.";
+			return;
+		}
+
 		NavigationManager.NavigateTo($"/shipment/edit/{shipment.Id}");
 	}
 

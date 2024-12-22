@@ -4,13 +4,22 @@
 {
     <div class="alert alert-@Type alert-dismissible fade show" role="alert">
         @Message
-        <button type="button" class="btn-close" @onclick="Dismiss"></button>
+        <button type="button" class="btn-close" @onclick="CloseAction"></button>
     </div>
 }
 
 @code {
     [Parameter]
     public string Message { get; set; } = string.Empty;
+
+    private void CloseAction()
+    {
+        Dismiss();
+        TriggerActionOnClose.InvokeAsync();
+    }
+
+    [Parameter]
+    public EventCallback TriggerActionOnClose { get; set; }
 
     [Parameter]
     public string Type { get; set; } = "info";

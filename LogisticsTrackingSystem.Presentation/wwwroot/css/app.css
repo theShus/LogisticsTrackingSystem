@@ -60,3 +60,14 @@ html, body {
         content: "An error has occurred."
     }
 
+.login-modal {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.login-container {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 1000;
+}
+
