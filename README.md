@@ -73,15 +73,17 @@ dotnet run
 
 The system uses JWT (JSON Web Tokens) for authentication. Two default users are seeded:
 
-1. Admin User
+1. Admin User - has all permissions 
    - Username: admin
    - Password: admin123
    - Role: Admin
 
-2. Regular User
+2. Regular User - has edit permission
    - Username: user
    - Password: user123
    - Role: User
+  
+3. No user - has view permissions
 
 ## Database
 
